@@ -1,8 +1,7 @@
 #!/bin/bash
 user_id=$(id -u)
 logs_folder="/var/log/roboshop"
-script_name=$(basename "$0" .sh)
-log_file="$logs_folder/$script_name.log"
+logs_file="${logs_folder}/${0}.log"
 direct_script=$(pwd)
 domain="daws880s.online"
 
@@ -31,7 +30,7 @@ validate () {
 mkdir -p $logs_folder
 echo -e "$(timestamp) scripting...................starting............"
 
-dnf module disable nodejs -y &>> $log_file
+dnf module disable nodejs -y &>> $logs_file
 validate $? "disabling the nodejs"
 
 dnf module enable nodejs:24 -y &>> $log_file
