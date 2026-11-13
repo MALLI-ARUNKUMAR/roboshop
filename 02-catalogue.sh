@@ -1,7 +1,8 @@
 #!/bin/bash
 user_id=$(id -u)
 logs_folder="/var/log/roboshop"
-logs_file="${logs_folder}/${0}.log"
+script_name=$(basename "$0" .sh)
+log_file="$logs_folder/$script_name.log"
 direct_script=$(pwd)
 domain="daws880s.online"
 
