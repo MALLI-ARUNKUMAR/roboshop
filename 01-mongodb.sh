@@ -24,6 +24,8 @@ validate () {
        
 }
 
+mkdir -p logs_folder
+
 
 echo -e "$(timestamp) scripting...................starting............"
 cp mongo.repo /etc/yum.repos.d/mongo.repo 
