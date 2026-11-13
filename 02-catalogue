@@ -1,0 +1,105 @@
+#!/bin/bash
+user_id=$(id -u)
+logs_folder="var/log/roboshop"
+log_file="$logs_folder/$0.log"
+direct_script=$pwd
+domain="daws880s.online"
+
+R="\e[31m"
+G="\e[32m"
+Y="\e[33m"
+N="\e[0m"
+
+if [ $user_id -ne 0 ]; then
+        echo "this user is not root user run the script with the root user"
+        exit 1
+fi
+timestamp() {
+    date "+%F %T"
+}
+validate () {
+    if [ $1 -ne 0]; then
+        echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
+        exit 1
+    else
+        echo -e "$(timestamp) ${2}......${G} SUCCESS ${N}"    
+    fi    
+       
+}
+
+mkdir -p $logs_folder
+echo -e "$(timestamp) scripting...................starting............"
+
+dnf module disable nodejs -y
+validate $? "disabling the nodejs"
+
+dnf module enable nodejs:24 -y
+validate $? "enable the nodejs"
+
+dnf install nodejs -y
+validate $? "install the nodejs"
+
+node -v
+validate $? "to check and verify"
+id roboshop
+if [ $? -ne 0] ; then
+    echo "roboshop user not created creating now"
+    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
+    validate $? "creating the roboshop user"
+else
+    echo " user created skipping now"
+fi
+mkdir -p /app
+validate $? "creating the app directory"
+
+curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip
+validate $? "copying the code to temp location"
+
+cd /app
+validate $? "moving to the app directory"
+
+rm -rf /app/*
+validate $? "removing to the app directory"
+
+unzip /tmp/catalogue.zip
+validate $? "unzip the code"
+
+cd /app
+validate $? "moving to the app directory"
+
+npm install
+validate $? "installing the dependences"
+
+cp $direct_script/catalogue.service /etc/systemd/system/catalogue.service
+validate $? "copying the catalogue services"
+
+systemctl daemon-reload
+validate $? "daemonreload"
+
+systemctl enable catalogue
+validate $? "enable the catalogue"
+
+systemctl start catalogue
+validate $? "start the catalogue"
+
+cp $direct_script/mongo.repo /etc/yum.repos.d/mongo.repo
+validate $? "copying the catalogue services"
+
+dnf install mongodb-mongosh -y
+validate $? "installing the mongodb"
+
+index=$(mongosh --host "mongodb.$domain" --quiet --eval 'db.getSiblingDB("catalogue").products.countDocuments()')
+
+if [ index -eq 0 ]; then
+    mongosh --host "mongodb.$domain" </app/db/master-data.js
+    validate $? "loading db data"
+else
+    echo "schemas all ready loaded skipping"
+fi
+
+dnf restart mongodb
+validate $? "restarting the mongodb"
+
+
+
+ 
