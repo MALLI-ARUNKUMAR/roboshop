@@ -2,7 +2,7 @@
 user_id=$(id -u)
 logs_folder="var/log/roboshop"
 log_file="$logs_folder/$0.log"
-direct_script=$pwd
+direct_script=$(pwd)
 domain="daws880s.online"
 
 R="\e[31m"
