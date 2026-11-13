@@ -26,7 +26,7 @@ validate () {
 
 
 echo -e "$(timestamp) scripting...................starting............"
-cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $log_file
+cp mongo.repo /etc/yum.repos.d/mongo.repo 
 validate $? "coping the mongo repo"
 
 dnf install mongodb-org -y &>> $log_file
