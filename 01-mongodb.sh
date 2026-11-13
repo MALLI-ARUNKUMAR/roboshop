@@ -1,7 +1,7 @@
 #!/bin/bash
 user_id=$(id -u)
 logs_folder="var/log/roboshop"
-log_file="$(logs_folder)/$0.log"
+log_file="$logs_folder/$0.log"
 
 R="\e[31m"
 G="\e[32m"
@@ -17,7 +17,7 @@ timestamp() {
 }
 validate () {
     if [ $1 -ne 0]
-        echo -e " $(timestamp) ${2}......${R} FAILURE ${N}"
+        echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
     else
         echo -e "$(timestamp) ${2}......${R} SUCCESS ${N}"    
     fi    
