@@ -42,7 +42,7 @@ validate $? "install the nodejs"
 node -v &>> $log_file
 validate $? "to check and verify"
 id roboshop &>> $log_file
-if [ $? -ne 0] ; then
+if [ $? -ne 0 ]; then
     echo "roboshop user not created creating now"
     useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
     validate $? "creating the roboshop user"
