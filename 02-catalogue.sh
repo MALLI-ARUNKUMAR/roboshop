@@ -1,105 +1,92 @@
 #!/bin/bash
+
 user_id=$(id -u)
 logs_folder="/var/log/roboshop"
 logs_file="${logs_folder}/${0}.log"
-direct_script=$(pwd)
-domain="daws880s.online"
-
+domain_name="daws880s.online"
+scripts_dir=$(dirname "$(realpath "$0")")
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
 N="\e[0m"
 
 if [ $user_id -ne 0 ]; then
-        echo "this user is not root user run the script with the root user"
-        exit 1
+    echo "Please run this script with sudo access.."
+    exit 1
 fi
-timestamp() {
-    date "+%F %T"
-}
-validate () {
-    if [ $1 -ne 0 ]; then
-        echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
-        exit 1
-    else
-        echo -e "$(timestamp) ${2}......${G} SUCCESS ${N}"    
-    fi    
-       
-}
 
 mkdir -p $logs_folder
-echo -e "$(timestamp) scripting...................starting............"
 
-dnf module disable nodejs -y 
-validate $? "disabling the nodejs"
+timestamp(){
+    date "+%F %T" 
+}
 
-dnf module enable nodejs:24 -y 
-validate $? "enable the nodejs"
+validate(){
+    if [ $1 -ne 0 ]; then
+        echo -e "$(timestamp) [ERROR] ${2}..${R}FAILED${N}" | tee -a $logs_file
+        exit 1
+    else
+        echo -e "$(timestamp) [INFO] ${2}..${G}SUCCESS${N}" | tee -a $logs_file
+    fi
+}
 
-dnf install nodejs -y 
-validate $? "install the nodejs"
+echo "$(timestamp) [INFO] ==== Script started Execution =====" | tee -a $logs_file
 
-node -v 
-validate $? "to check and verify"
-id roboshop &>> 
+dnf module disable nodejs -y &>> $logs_file
+dnf module enable nodejs:24 -y &>> $logs_file
+dnf install nodejs -y &>> $logs_file
+validate $? "Installing nodejs 24"
+
+id roboshop &>> $logs_file
 if [ $? -ne 0 ]; then
-    echo "roboshop user not created creating now"
-    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
-    validate $? "creating the roboshop user"
+    useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop &>> $logs_file
+    validate $? "Creating system user"
 else
-    echo " user created skipping now"
+    echo -e "$(timestamp) [INFO] System user roboshop already exist...${Y}SKIPPING${N}"
 fi
-mkdir -p /app 
-validate $? "creating the app directory"
 
-curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip
-validate $? "copying the code to temp location"
+rm -rf /app
+validate $? "Removing old code"
 
-cd /app &>> 
-validate $? "moving to the app directory"
+mkdir -p /app
+validate $? "Creating app directory"
 
-rm -rf /app/* &>> $logs_file
-validate $? "removing to the app directory"
+curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip &>> $logs_file
+validate $? "Downloading catalogue"
 
-unzip /tmp/catalogue.zip $logs_file
-validate $? "unzip the code"
-
-cd /app &>> $logs_file
-validate $? "moving to the app directory"
+cd /app
+unzip /tmp/catalogue.zip &>> $logs_file
+validate $? "Unzipping catalogue"
 
 npm install &>> $logs_file
-validate $? "installing the dependences"
+validate $? "Installing dependencies"
 
-cp $direct_script/catalogue.service /etc/systemd/system/catalogue.service &>> $logs_file
-validate $? "copying the catalogue services"
+sed -i "s/DOMAIN_NAME/$domain_name/g" "$scripts_dir/catalogue.service"
+cp "$scripts_dir/catalogue.service" /etc/systemd/system/catalogue.service
 
 systemctl daemon-reload &>> $logs_file
-validate $? "daemonreload"
-
 systemctl enable catalogue &>> $logs_file
-validate $? "enable the catalogue"
-
 systemctl start catalogue &>> $logs_file
-validate $? "start the catalogue"
+validate $? "Starting and enabling catalogue"
 
-cp $direct_script/mongo.repo /etc/yum.repos.d/mongo.repo &>> $logs_file
-validate $? "copying the catalogue services"
+cp "$scripts_dir/mongo.repo" /etc/yum.repos.d/mongo.repo
+validate $? "Adding Mongo repo"
 
 dnf install mongodb-mongosh -y &>> $logs_file
-validate $? "installing the mongodb"
+validate $? "Installing MongoDB Client"
 
-index=$(mongosh --host "mongodb.$domain" --quiet --eval 'db.getSiblingDB("catalogue").products.countDocuments()')
+product_count=$(mongosh --host "mongodb.$domain_name" --quiet --eval 'db.getSiblingDB("catalogue").products.countDocuments()' 2>> $logs_file)
 validate $? "Connecting to MongoDB"
-if [ index -eq 0 ]; then
-    mongosh --host "mongodb.$domain" </app/db/master-data.js
-    validate $? "loading db data"
+
+if [ "$product_count" -eq 0 ]; then
+    mongosh --host "mongodb.$domain_name" </app/db/master-data.js &>> $logs_file
+    validate $? "Loading products"
 else
-    echo "schemas all ready loaded skipping"
+    echo -e "$(timestamp) [INFO] Products are already loaded...${Y}SKIPPING${N}"
 fi
 
-dnf restart mongodb &>> $logs_file
-validate $? "restarting the mongodb"
+systemctl restart catalogue
+validate $? "Restarting Catalogue"
 
-
-
- 
+echo "$(timestamp) [INFO] Script completed in $SECONDS seconds"
+echo "$(timestamp) [INFO] ==== Script completed Execution =====" | tee -a $logs_file
