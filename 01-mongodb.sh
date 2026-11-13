@@ -16,7 +16,7 @@ timestamp() {
     date "+%F %T"
 }
 validate () {
-    if [ $1 -ne 0]
+    if [ $1 -ne 0]; then
         echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
     else
         echo -e "$(timestamp) ${2}......${R} SUCCESS ${N}"    
