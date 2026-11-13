@@ -30,18 +30,18 @@ validate () {
 mkdir -p $logs_folder
 echo -e "$(timestamp) scripting...................starting............"
 
-dnf module disable nodejs -y
+dnf module disable nodejs -y &>> $log_file
 validate $? "disabling the nodejs"
 
-dnf module enable nodejs:24 -y
+dnf module enable nodejs:24 -y &>> $log_file
 validate $? "enable the nodejs"
 
-dnf install nodejs -y
+dnf install nodejs -y &>> $log_file
 validate $? "install the nodejs"
 
-node -v
+node -v &>> $log_file
 validate $? "to check and verify"
-id roboshop
+id roboshop &>> $log_file
 if [ $? -ne 0] ; then
     echo "roboshop user not created creating now"
     useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
@@ -49,43 +49,43 @@ if [ $? -ne 0] ; then
 else
     echo " user created skipping now"
 fi
-mkdir -p /app
+mkdir -p /app &>> $log_file
 validate $? "creating the app directory"
 
 curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip
 validate $? "copying the code to temp location"
 
-cd /app
+cd /app &>> $log_file
 validate $? "moving to the app directory"
 
-rm -rf /app/*
+rm -rf /app/* &>> $log_file
 validate $? "removing to the app directory"
 
-unzip /tmp/catalogue.zip
+unzip /tmp/catalogue.zip &>> $log_file
 validate $? "unzip the code"
 
-cd /app
+cd /app &>> $log_file
 validate $? "moving to the app directory"
 
-npm install
+npm install &>> $log_file
 validate $? "installing the dependences"
 
-cp $direct_script/catalogue.service /etc/systemd/system/catalogue.service
+cp $direct_script/catalogue.service /etc/systemd/system/catalogue.service &>> $log_file
 validate $? "copying the catalogue services"
 
-systemctl daemon-reload
+systemctl daemon-reload &>> $log_file
 validate $? "daemonreload"
 
-systemctl enable catalogue
+systemctl enable catalogue &>> $log_file
 validate $? "enable the catalogue"
 
-systemctl start catalogue
+systemctl start catalogue &>> $log_file
 validate $? "start the catalogue"
 
-cp $direct_script/mongo.repo /etc/yum.repos.d/mongo.repo
+cp $direct_script/mongo.repo /etc/yum.repos.d/mongo.repo &>> $log_file
 validate $? "copying the catalogue services"
 
-dnf install mongodb-mongosh -y
+dnf install mongodb-mongosh -y &>> $log_file
 validate $? "installing the mongodb"
 
 index=$(mongosh --host "mongodb.$domain" --quiet --eval 'db.getSiblingDB("catalogue").products.countDocuments()')
@@ -97,7 +97,7 @@ else
     echo "schemas all ready loaded skipping"
 fi
 
-dnf restart mongodb
+dnf restart mongodb &>> $log_file
 validate $? "restarting the mongodb"
 
 
