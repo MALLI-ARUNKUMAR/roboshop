@@ -24,7 +24,7 @@ validate () {
        
 }
 
-mkdir -p logs_folder
+mkdir -p $logs_folder
 
 
 echo -e "$(timestamp) scripting...................starting............"
