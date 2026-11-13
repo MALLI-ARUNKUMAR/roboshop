@@ -19,24 +19,27 @@ validate () {
     if [ $1 -ne 0]; then
         echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
     else
-        echo -e "$(timestamp) ${2}......${R} SUCCESS ${N}"    
+        echo -e "$(timestamp) ${2}......${G} SUCCESS ${N}"    
     fi    
        
 }
 
 
 echo -e "$(timestamp) scripting...................starting............"
-cp mongo.repo /etc/yum.repos.d/mongo.repo
+cp mongo.repo /etc/yum.repos.d/mongo.repo &>>$log_file
 validate $? "coping the mongo repo"
 
-dnf install mongodb-org -y
+dnf install mongodb-org -y &>>$log_file
 validate $? "installing the mongodb"
 
-systemctl enable mongod
-systemctl start mongod
+systemctl enable mongod &>>$log_file
+systemctl start mongod &>>$log_file
 validate $? "start and enable the mongod"
 
-sed -i 's/127.0.0.1/0.0.0.0/' /etc/mongod.conf
+sed -i 's/127.0.0.1/0.0.0.0/' /etc/mongod.conf &>>$log_file
 validate $? "enabling the remote access"
 
- echo -e "$(timestamp) scripting...................completed  $(seconds)............"
+systemctl restart mongod &>>$log_file
+validate $? "restarting the mongod"
+
+ echo -e "$(timestamp) scripting...................completed  $(SECONDS)............"
