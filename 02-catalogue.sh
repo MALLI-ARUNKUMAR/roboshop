@@ -18,7 +18,7 @@ timestamp() {
     date "+%F %T"
 }
 validate () {
-    if [ $1 -ne 0]; then
+    if [ $1 -ne 0 ]; then
         echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
         exit 1
     else
@@ -89,7 +89,7 @@ dnf install mongodb-mongosh -y &>> $log_file
 validate $? "installing the mongodb"
 
 index=$(mongosh --host "mongodb.$domain" --quiet --eval 'db.getSiblingDB("catalogue").products.countDocuments()')
-
+validate $? "Connecting to MongoDB"
 if [ index -eq 0 ]; then
     mongosh --host "mongodb.$domain" </app/db/master-data.js
     validate $? "loading db data"
