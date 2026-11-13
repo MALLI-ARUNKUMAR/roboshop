@@ -26,20 +26,20 @@ validate () {
 
 
 echo -e "$(timestamp) scripting...................starting............"
-cp mongo.repo /etc/yum.repos.d/mongo.repo &>>$log_file
+cp mongo.repo /etc/yum.repos.d/mongo.repo &>> $log_file
 validate $? "coping the mongo repo"
 
-dnf install mongodb-org -y &>>$log_file
+dnf install mongodb-org -y &>> $log_file
 validate $? "installing the mongodb"
 
-systemctl enable mongod &>>$log_file
-systemctl start mongod &>>$log_file
+systemctl enable mongod &>> $log_file
+systemctl start mongod &>> $log_file
 validate $? "start and enable the mongod"
 
-sed -i 's/127.0.0.1/0.0.0.0/' /etc/mongod.conf &>>$log_file
+sed -i 's/127.0.0.1/0.0.0.0/' /etc/mongod.conf &>> $log_file
 validate $? "enabling the remote access"
 
-systemctl restart mongod &>>$log_file
+systemctl restart mongod &>> $log_file
 validate $? "restarting the mongod"
 
  echo -e "$(timestamp) scripting...................completed  $(SECONDS)............"
