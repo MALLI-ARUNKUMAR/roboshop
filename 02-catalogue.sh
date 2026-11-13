@@ -30,18 +30,18 @@ validate () {
 mkdir -p $logs_folder
 echo -e "$(timestamp) scripting...................starting............"
 
-dnf module disable nodejs -y &>> $logs_file
+dnf module disable nodejs -y 
 validate $? "disabling the nodejs"
 
-dnf module enable nodejs:24 -y &>> $logs_file
+dnf module enable nodejs:24 -y 
 validate $? "enable the nodejs"
 
-dnf install nodejs -y &>> $logs_file
+dnf install nodejs -y 
 validate $? "install the nodejs"
 
-node -v &>> $logs_file
+node -v 
 validate $? "to check and verify"
-id roboshop &>> $logs_file
+id roboshop &>> 
 if [ $? -ne 0 ]; then
     echo "roboshop user not created creating now"
     useradd --system --home /app --shell /sbin/nologin --comment "roboshop system user" roboshop
@@ -49,13 +49,13 @@ if [ $? -ne 0 ]; then
 else
     echo " user created skipping now"
 fi
-mkdir -p /app &>> $logs_file
+mkdir -p /app 
 validate $? "creating the app directory"
 
 curl -L -o /tmp/catalogue.zip https://raw.githubusercontent.com/daws-92s/roboshop-documentation/refs/heads/main/artifacts/catalogue-v4.zip
 validate $? "copying the code to temp location"
 
-cd /app &>> $logs_file
+cd /app &>> 
 validate $? "moving to the app directory"
 
 rm -rf /app/* &>> $logs_file
