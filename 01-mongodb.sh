@@ -18,6 +18,7 @@ timestamp() {
 validate () {
     if [ $1 -ne 0]; then
         echo -e "$(timestamp) ${2}......${R} FAILURE ${N}"
+        exit 1
     else
         echo -e "$(timestamp) ${2}......${G} SUCCESS ${N}"    
     fi    
@@ -25,8 +26,6 @@ validate () {
 }
 
 mkdir -p $logs_folder
-
-
 echo -e "$(timestamp) scripting...................starting............"
 cp mongo.repo /etc/yum.repos.d/mongo.repo 
 validate $? "coping the mongo repo"
@@ -44,4 +43,6 @@ validate $? "enabling the remote access"
 systemctl restart mongod &>> $log_file
 validate $? "restarting the mongod"
 
- echo -e "$(timestamp) scripting...................completed  $(SECONDS)............"
+ echo -e "$(timestamp) scripting...................completed  ............"
+
+ 
