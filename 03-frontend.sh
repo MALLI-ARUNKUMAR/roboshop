@@ -33,12 +33,12 @@ validate(){
 echo "$(timestamp) [INFO] ==== Script started Execution =====" | tee -a $logs_file
 
 dnf module disable nginx -y &>> $logs_file
-dnf module enable nginx:1.26 -y &>> $logs_file
-dnf install nginx -y &>> $logs_file
-validate $? "enable and install nginx" &>> $logs_file
+dnf module enable nginx:1.26 -y
+dnf install nginx -y 
+validate $? "enable and install nginx" 
 
 systemctl enable nginx &>> $logs_file
-systemctl start nginx &>> $logs_file
+systemctl start nginx 
 validate $? "start and enable nginx"
 
 rm -rf /usr/share/nginx/html/* &>> $logs_file
