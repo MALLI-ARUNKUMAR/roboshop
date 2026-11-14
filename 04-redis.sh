@@ -3,8 +3,6 @@
 user_id=$(id -u)
 logs_folder="/var/log/roboshop"
 logs_file="${logs_folder}/${0}.log"
-domain_name="daws880s.online"
-scripts_dir=$(dirname "$(realpath "$0")")
 R="\e[31m"
 G="\e[32m"
 Y="\e[33m"
@@ -23,24 +21,26 @@ timestamp(){
 
 validate(){
     if [ $1 -ne 0 ]; then
-        echo -e "$(timestamp) [ERROR] ${2}..${R}FAILED${N}" 
+        echo -e "$(timestamp) [ERROR] ${2}..${R}FAILED${N}" | tee -a $logs_file
         exit 1
     else
-        echo -e "$(timestamp) [INFO] ${2}..${G}SUCCESS${N}" 
+        echo -e "$(timestamp) [INFO] ${2}..${G}SUCCESS${N}" | tee -a $logs_file
     fi
 }
 
+echo "$(timestamp) [INFO] ==== Script started Execution =====" | tee -a $logs_file
 
-dnf module disable redis -y 
-dnf module enable redis:7 -y 
-validate $? "enable the redis"
+dnf module disable redis -y &>> $logs_file
+dnf module enable redis:7 -y &>> $logs_file
+dnf install redis -y &>> $logs_file
+validate $? "Installing Redis"
 
-dnf install redis -y 
-validate $? "install the redis"
+sed -i -e 's/^bind 127.0.0.1/bind 0.0.0.0/' -e 's/^protected-mode yes/protected-mode no/' /etc/redis/redis.conf
+validate $? "Allowing remote connections to Redis"
 
-sed -i -e 's/^bind 127.0.0.1/bind 0.0.0.0/' -e 's/^protected-mode yes/protected-mode no/' /etc/redis/redis.conf 
-validate $? "enable the remote connection"
-
-systemctl enable redis 
+systemctl enable redis &>> $logs_file
 systemctl start redis
-validate $? "start and enable the redis"
+validate $? "Enable and start Redis"
+
+echo "$(timestamp) [INFO] Script completed in $SECONDS seconds"
+echo "$(timestamp) [INFO] ==== Script completed Execution =====" | tee -a $logs_file
