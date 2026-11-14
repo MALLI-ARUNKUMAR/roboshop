@@ -48,7 +48,7 @@ curl -L -o /tmp/frontend.zip https://raw.githubusercontent.com/daws-92s/roboshop
 cd /usr/share/nginx/html
 unzip /tmp/frontend.zip &>> $logs_file
 validate $? "unziping the code"
-
+sed -i "s/DOMAIN_NAME/$domain_name/g" "$scripts_dir/roboshop.conf"
 cp $scripts_dir/roboshop.conf /etc/nginx/default.d/roboshop.conf &>> $logs_file
 validate $? "copying the repo"
 
